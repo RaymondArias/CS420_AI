@@ -18,7 +18,7 @@ public class Puzzle8 {
 		}
 		//Create frontier and add initial state
 		PriorityQueue<PuzzleBoard> frontier 
-		= new PriorityQueue<PuzzleBoard>(new PuzzleComparator());
+		= new PriorityQueue<PuzzleBoard>(10, new PuzzleComparator());
 		HashSet<Integer> alreadyVisited = new HashSet<>();
 		frontier.add(node);
 		ArrayList<int [][]> possibleMoves = null;
