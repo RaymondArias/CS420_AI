@@ -3,13 +3,19 @@ public class Board {
 	private String board;
 	private int attackingQueens;
 	private int n;
+	private double fitnessFunction;
 	
 	public Board(String board, int n)
 	{
 		this.board = board;
 		this.n = n;
 		this.attackingQueens = calcAttackingQueens();
-		System.out.println(attackingQueens);
+		if(attackingQueens == 0)
+		{
+			System.out.println(attackingQueens);
+		}
+		this.fitnessFunction = 1/(double)attackingQueens;
+		//System.out.println(attackingQueens);
 	}
 	public String getBoard() {
 		return board;
@@ -26,39 +32,65 @@ public class Board {
 	public void setAttackingQueens(int attackingQueens) {
 		this.attackingQueens = attackingQueens;
 	}
+	public int getN()
+	{
+		return n;
+	}
+	public void setN(int n)
+	{
+		this.n = n;
+	}
+	public double getFitnessFuction() {
+		return fitnessFunction;
+	}
+	public void setFitnessFuction(double fitnessFuction) {
+		this.fitnessFunction = fitnessFuction;
+	}
 	public int calcAttackingQueens()
 	{
 		int attacking = 0;
 		String[] data = board.split(" ");
-		int [][]boardConfig = new int[n][n];
-		
-		int count = 0;
+		//Calc the num of attacking rows
+		for(int i = 0; i < data.length; i++)
+		{
+			int queenNumber = Integer.parseInt(data[i]);
+			attacking += findAttackingPerQueen(i, queenNumber, data);
+		}
+		return attacking;
+	}
+	int findAttackingPerQueen(int queen_number, int row_position, String []position) {
+		int attack = 0;
+	    for(int i=0; i<queen_number; i++) {
+	        int other_row_pos = Integer.parseInt(position[i]);
+	        if(other_row_pos == row_position ||
+	           other_row_pos == row_position - (queen_number-i) || 
+	           other_row_pos == row_position + (queen_number-i)) 
+	            attack++;
+	    }
+	    return attack;
+	}
+	public void printBoard()
+	{
+		String []rowValue = board.split(" ");
 		for(int i = 0; i < n; i++)
 		{
-			int rowValue = Integer.parseInt(data[i]);
-			for(int j = 0; j < n; j++)
+			int columnNumWithQueen = Integer.parseInt(rowValue[i]);
+			for (int j = 0; j < n; j++)
 			{
-				int otherQueenRow = Integer.parseInt(data[j]);
-				if(j != i && rowValue == otherQueenRow)
+				if(columnNumWithQueen == j + 1)
 				{
-					attacking++;
+					System.out.print("Q");
+				}
+				else
+				{
+					System.out.print("-");
 				}
 			}
-			//boardConfig[rowValue][i] = 1;
-		}
-		/*for(int i = 0; i < n; i++)
-		{
-			int rowValue = boardConfig[count][i];
-			for(int j = 0; j < n; j++)
-			{
-				System.out.print(boardConfig[i][j]);
-			}
 			System.out.println();
-		}*/
-		return attacking;
+		}
 	}
 	public static void main(String []args)
 	{
-		Board board = new Board("2 2 3 4", 4);
+		Board board = new Board("3 1 4 2", 4);
 	}
 }
