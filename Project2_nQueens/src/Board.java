@@ -4,16 +4,14 @@ public class Board {
 	private int attackingQueens;
 	private int n;
 	private double fitnessFunction;
+	private int searchCost;
 	
 	public Board(String board, int n)
 	{
 		this.board = board;
 		this.n = n;
 		this.attackingQueens = calcAttackingQueens();
-		if(attackingQueens == 0)
-		{
-			System.out.println(attackingQueens);
-		}
+		
 		this.fitnessFunction = 1/(double)attackingQueens;
 		//System.out.println(attackingQueens);
 	}
@@ -40,11 +38,17 @@ public class Board {
 	{
 		this.n = n;
 	}
-	public double getFitnessFuction() {
+	public double getFitnessFunction() {
 		return fitnessFunction;
 	}
-	public void setFitnessFuction(double fitnessFuction) {
+	public void setFitnessFunction(double fitnessFuction) {
 		this.fitnessFunction = fitnessFuction;
+	}
+	public int getSearchCost() {
+		return searchCost;
+	}
+	public void setSearchCost(int searchCost) {
+		this.searchCost = searchCost;
 	}
 	public int calcAttackingQueens()
 	{

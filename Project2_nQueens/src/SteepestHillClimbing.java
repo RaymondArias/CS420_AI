@@ -7,12 +7,17 @@ public class SteepestHillClimbing {
 	{
 		int n = initialBoard.split(" ").length;
 		Board current = new Board(initialBoard, n);
+		int searchCost = 0;
 		while(true)
 		{
 			ArrayList<Board> childrenConfigs = generateAllBoardConfigs(current.getBoard().split(" "), n);
+			searchCost += childrenConfigs.size();
 			Board neighbor = getBestChild(childrenConfigs);
 			if(current.getAttackingQueens() <= neighbor.getAttackingQueens())
+			{
+				current.setSearchCost(searchCost);
 				return current;
+			}
 			current = neighbor;
 		}
 	}

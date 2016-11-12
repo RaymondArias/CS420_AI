@@ -1,7 +1,7 @@
 import java.util.ArrayList;
 import java.util.Random;
 
-public class GeneticAlgorithms {
+public class GeneticAlgorithm {
 	public Board geneticAlgorithm(int n)
 	{
 		Board retBoard = null;
@@ -10,9 +10,11 @@ public class GeneticAlgorithms {
 		int k = 100;
 		ArrayList<Board> population = genPopulation(k, n, rand);
 		population.sort(compare);
-		int i = 0;
+		int searchCost = 0;
+		
 		while (true)
 		{
+			searchCost += population.size();
 			ArrayList<Board> selectedPop = select(population, rand);
 			ArrayList<Board> crossOver = crossOver(selectedPop, rand, n);
 			crossOver.sort(compare);
@@ -20,6 +22,7 @@ public class GeneticAlgorithms {
 			if(bestBoard.getAttackingQueens() == 0)
 			{
 				retBoard = bestBoard;
+				retBoard.setSearchCost(searchCost);
 				break;
 			}
 			population = crossOver;
@@ -125,7 +128,7 @@ public class GeneticAlgorithms {
 	}
 	public static void main(String []args)
 	{
-		GeneticAlgorithms ga = new GeneticAlgorithms();
+		GeneticAlgorithm ga = new GeneticAlgorithm();
 		for(int i = 0; i < 1000; i++)
 		{
 			Board finalBoard = ga.geneticAlgorithm(20);
