@@ -1,28 +1,33 @@
 import java.util.ArrayList;
 import java.util.Random;
+
 /**
  * Class which implements the min max alpha beta pruning algorithm
- * @author Raymond Arias
+ * 
+ * @author Raymond Arias.
  *
  */
 public class AlphaBetaPruning {
 	private Random rand;
+	
 	/**
 	 * Constructor for AlphaBetaPruning Object
 	 */
-	public AlphaBetaPruning()
-	{
+	public AlphaBetaPruning() {
 		rand = new Random(System.currentTimeMillis());
-		
+
 	}
+
 	/**
 	 * Used to generate all the successors of a state
+	 * 
 	 * @param board
 	 * @return List of successor
 	 */
-	public ArrayList<Board> getSuccessors(Board board, String turnValue) {
+	public ArrayList<Board> getSuccessors(Board board, String turnValue, int lastRow, int lastCol) {
 		ArrayList<Board> successors = new ArrayList<>(100);
 		String[][] state = board.getBoardConfig();
+		
 		for (int i = 0; i < state.length; i++) {
 			for (int j = 0; j < state[i].length; j++) {
 				// Check to see if move is allowed
@@ -37,108 +42,92 @@ public class AlphaBetaPruning {
 					// add to successors arraylist
 					successors.add(successor);
 				}
+				
 			}
+			
+			
 		}
 		return successors;
 	}
 
-	
-	public Board alphaBetaAlgorithm(Board state, boolean maxPlayer, 
-			double alpha, double beta, int depth, long endingTime){
-		//If game is over return this state
-		if(state.isGameOver())
-		{
+	public Board alphaBetaAlgorithm(Board state, boolean maxPlayer, double alpha, double beta, int depth,
+			long endingTime) {
+		// If game is over return this state
+		if (state.isGameOver()) {
 			return state;
 		}
-		//Check if the time is over or the max depth is hit
-		if(depth == 0 || System.currentTimeMillis() + 200 >= endingTime)
-		{
-			//Run evalution function for non leaf state
+		// Check if the time is over or the max depth is hit
+		if (depth == 0 || System.currentTimeMillis() >= endingTime) {
+			
+			// Run evalution function for non leaf state
 			double evaluationFunction = this.evaluation(state);
-			//set the state's utility function
+			// set the state's utility function
 			state.setUtilityFunction(evaluationFunction);
 			return state;
 		}
-		//If it max's turn find the max in sucessors
-		if(maxPlayer)
-		{
+		// If it max's turn find the max in sucessors
+		if (maxPlayer) {
 			Board bestBoard = state;
 			double bestValue = -Double.MAX_VALUE;
-			//Get all successors for this state
-			ArrayList<Board> children = this.getSuccessors(state, "X");
-			//If there are no sucessors simply return this state
-			if(children.size() == 0)
-			{
-				return state;
-			}
 			// Variables to save the best move
 			int bestRow = state.getRowMove();
 			int bestCol = state.getColMove();
-			//randomly choose a successor first
-			int randIndex = rand.nextInt(children.size());
-			bestRow = children.get(randIndex).getRowMove();
-			bestCol = children.get(randIndex).getColMove();
-			//Iterate through all children
-			for (Board child: children)
-			{
-				//Run min algorithm on successors
+			// Get all successors for this state
+			ArrayList<Board> children = this.getSuccessors(state, "X", bestRow, bestCol);
+			// If there are no sucessors simply return this state
+			if (children.size() == 0) {
+				return state;
+			}
+			
+			// Iterate through all children
+			for (Board child : children) {
+				// Run min algorithm on successors
 				Board valueBoard = alphaBetaAlgorithm(child, false, alpha, beta, depth - 1, endingTime);
-				//Get the best utility function
+				// Get the best utility function
 				double value = valueBoard.getUtilityFunction();
-				//if the value is better than the bestValue
-				//a better state was found so set it to bestValue
-				if(value > bestValue)
-				{
+				// if the value is better than the bestValue
+				// a better state was found so set it to bestValue
+				if (value > bestValue) {
 					bestValue = value;
-					//Set the best board found so far
+					// Set the best board found so far
 					bestBoard = valueBoard;
-					//Save the move for this best board
+					// Save the move for this best board
 					bestRow = child.getRowMove();
 					bestCol = child.getColMove();
 				}
-				//Prune branches that do not lead to better choices
-				if(value >= beta)
-				{
+				// Prune branches that do not lead to better choices
+				if (value >= beta) {
 					break;
 				}
-				//set alpha to whatever variable is larger
-				//between alpha max
+				// set alpha to whatever variable is larger
+				// between alpha max
 				alpha = Math.max(alpha, value);
 			}
-			//set the moves for the best board found
+			// set the moves for the best board found
 			bestBoard.setMoves(bestRow, bestCol);
-			//return best board
 			return bestBoard;
 		}
-		//Algorithm runs the same for min just everything is minimized
-		else
-		{
+		// Algorithm runs the same for min just everything is minimized
+		else {
 			Board bestBoard = state;
 			double bestValue = Double.MAX_VALUE;
 			int bestRow = state.getRowMove();
 			int bestCol = state.getColMove();
-			ArrayList<Board> children = this.getSuccessors(state, "O");
-			if(children.size() == 0)
-			{
+			ArrayList<Board> children = this.getSuccessors(state, "O", bestRow, bestCol);
+			if (children.size() == 0) {
 				return state;
 			}
-			int randIndex = rand.nextInt(children.size());
-			bestRow = children.get(randIndex).getRowMove();
-			bestCol = children.get(randIndex).getColMove();
-			for(Board child: children)
-			{
+			for (Board child : children) {
 				Board valueBoard = alphaBetaAlgorithm(child, true, alpha, beta, depth - 1, endingTime);
 				double value = valueBoard.getUtilityFunction();
-				if(value < bestValue)
-				{
+				if (value < bestValue) {
 					bestValue = value;
 					bestBoard = valueBoard;
 					bestRow = child.getRowMove();
 					bestCol = child.getColMove();
 				}
-				
-				if(value <= alpha)
-				{
+
+				if (value <= alpha) {
 					break;
 				}
 				beta = Math.min(beta, bestValue);
@@ -146,277 +135,187 @@ public class AlphaBetaPruning {
 			bestBoard.setMoves(bestRow, bestCol);
 			return bestBoard;
 		}
-		
+
 	}
+
 	/**
 	 * Calculates the evaluation function for this board
+	 * 
 	 * @param board
 	 * @return
 	 */
-	public double evaluation(Board board)
-	{
-		String [][]boardConfig = board.getBoardConfig();
+	public double evaluation(Board board) {
+		String[][] boardConfig = board.getBoardConfig();
 		double eval = 0.0;
-		for(int i = 0; i < boardConfig.length; i++)
-		{
-			for(int j = 0; j < boardConfig[i].length; j++)
-			{
-				eval += evalPiece(i, j, boardConfig);
-				
+		for (int i = 0; i < boardConfig.length; i++) {
+			for (int j = 0; j < boardConfig[i].length; j++) {
+				if (!boardConfig[i][j].equals("-")) {
+					eval += evalPiece(i, j, boardConfig, boardConfig[i][j], board);	
+				}
 			}
 		}
 		return eval;
 	}
+
 	/**
 	 * Calculates an evaluation for each piece on the board
+	 * 
 	 * @param i
 	 * @param j
 	 * @param board
 	 * @return
 	 */
-	public double evalPiece(int i, int j, String [][]board)
-	{
-		double evalPiece = 0.0;
-		//The computer's piece on the board
-		if(board[i][j].equals("X"))
-		{
-			double compPieces = 0.2;
-			//Check the pieces in the same row
-			//Check if the next piece over is a computer piece
-			if(j + 1 < 8 && board[i][j + 1].equals("X"))
+	public double evalPiece(int i, int j, String[][] board, String value, Board config) {
+		double compPieces = 0.2;
+
+		// Check the pieces in the same row
+		// Check if the next piece over is a computer piece
+		if (j + 1 < 8 && board[i][j + 1].equals(value)) {
+			compPieces += 0.4;
+			if((j + 2 < 8 && board[i][j + 2].equals("-")) && (j - 1 > -1 && board[i][j - 1].equals("-")))
 			{
-				compPieces += 0.4;
-				//Check if the piece two moves down is the computer's
-				if(j + 2 < 8 && board[i][j + 2].equals("X"))
-				{
-					compPieces += 0.6;
-					//Check if the piece three moves down is the computer's
-					if(j + 3 < 8 && board[i][j + 3].equals("X")){
-						compPieces += 0.8;
-					}
+				//-xx-
+				compPieces += 0.6;
+			}
+			// Check if the piece two moves down is the computer's
+			if (j + 2 < 8 && board[i][j + 2].equals(value)) {
+				compPieces += 0.6;
+				// Check if the piece three moves down is the computer's
+				if (j + 3 < 8 && board[i][j + 3].equals(value)) {
+					compPieces += 1.0;
+
 				}
 			}
-			//Check the pieces to the right
-			if(j - 1 > -1 && board[i][j - 1].equals("X"))
-			{
-				compPieces += 0.4;
-				//Check if the piece two moves down is the computer's
-				if(j - 2 > -1 && board[i][j - 2].equals("X"))
-				{
-					compPieces += 0.6;
-					//Check if the piece three moves down is the computer's
-					if(j - 3 > -1 && board[i][j - 3].equals("X")){
-						compPieces += 0.8;
-					}
-				}
-			}
-			//Check if the piece next to this move is blank
-			if(j + 1 < 8 && board[i][j + 1].equals("-"))
-			{
-				//Check if the piece two moves down is the computer's
-				if(j + 2 < 8 && board[i][j + 2].equals("X"))
-				{
-					compPieces += 0.6;
-					//Check if the piece three moves down is the computer's
-					if(j + 3 < 8 && board[i][j + 3].equals("X")){
-						compPieces += 0.8;
-					}
-				}
-				
-			}
-			//Check if the move next to this move is blank
-			if(j - 1 > -1 && board[i][j - 1].equals("-"))
-			{
-				//Check if the piece two moves down is the computer's
-				if(j - 2 > -1 && board[i][j - 2].equals("X"))
-				{
-					compPieces += 0.6;
-					//Check if the piece three moves down is the computer's
-					if(j - 3 > -1 && board[i][j - 3].equals("X")){
-						compPieces += 0.8;
-					}
-				}
-			}
-			//Check the pieces in the column row
-			//Check if the next piece over is a computer piece
-			if(i + 1 < 8 && board[i + 1][j].equals("X"))
-			{
-				compPieces += 0.4;
-				//Check if the piece two moves down is the computer's
-				if(i + 2 < 8 && board[i + 2][j].equals("X"))
-				{
-					compPieces += 0.6;
-					//Check if the piece three moves down is the computer's
-					if(i + 3 < 8 && board[i + 3][j].equals("X")){
-						compPieces += 0.8;
-					}
-				}
-			}
-			//Check the pieces in the column row
-			//Check if the next piece over is a computer piece
-			if(i - 1 > -1 && board[i - 1][j].equals("X"))
-			{
-				compPieces += 0.4;
-				//Check if the piece two moves down is the computer's
-				if(i - 2 > -1 && board[i - 2][j].equals("X"))
-				{
-					compPieces += 0.6;
-					//Check if the piece three moves down is the computer's
-					if(i - 3 > -1 && board[i - 3][j].equals("X")){
-						compPieces += 0.8;
-					}
-				}
-			}
-			//Check if the move next to this move is blank
-			if(i + 1 < 8 && board[i + 1][j].equals("-"))
-			{
-				//Check if the piece two moves down is the computer's
-				if(i + 2 < 8 && board[i + 2][j].equals("X"))
-				{
-					compPieces += 0.6;
-					//Check if the piece three moves down is the computer's
-					if(i + 3 < 8 && board[i + 3][j].equals("X")){
-						compPieces += 0.8;
-					}
-				}
-				
-			}
-			//Check if the move next to this move is blank
-			if(i - 1 > -1 && board[i - 1][j].equals("-"))
-			{
-				//Check if the piece two moves down is the computer's
-				if(i - 2 > -1 && board[i - 2][j].equals("X"))
-				{
-					compPieces += 0.6;
-					//Check if the piece three moves down is the computer's
-					if(i - 3 > -1 && board[i - 3][j].equals("X")){
-						compPieces += 0.8;
-					}
-				}
-				
-			}
-			return compPieces;
 		}
-		else if(board[i][j].equals("0"))
-		{
-			double compPieces = 0.2;
-			//Check the pieces in the same row
-			//Check if the next piece over is a player piece
-			if(j + 1 < 8 && board[i][j + 1].equals("O"))
+		// Check the pieces to the right
+		if (j - 1 > -1 && board[i][j - 1].equals(value)) {
+			compPieces += 0.4;
+			if((j + 1 < 8 && board[i][j + 1].equals("-")) && (j - 2 > -1 && board[i][j - 2].equals("-")))	
 			{
-				compPieces += 0.4;
-				//Check if the piece two moves down is the player's
-				if(j + 2 < 8 && board[i][j + 2].equals("O"))
-				{
-					compPieces += 0.6;
-					//Check if the piece three moves down is the player's
-					if(j + 3 < 8 && board[i][j + 3].equals("O")){
-						compPieces += 0.8;
-					}
+				compPieces += 0.6;
+			}
+			// Check if the piece two moves down is the computer's
+			if (j - 2 > -1 && board[i][j - 2].equals(value)) {
+				compPieces += 0.6;
+				// Check if the piece three moves down is the computer's
+				if (j - 3 > -1 && board[i][j - 3].equals(value)) {
+					compPieces += 1.0;
 				}
 			}
-			//Check the pieces to the right
-			if(j - 1 > -1 && board[i][j - 1].equals("O"))
-			{
-				compPieces += 0.4;
-				//Check if the piece two moves down is the player's
-				if(j - 2 > -1 && board[i][j - 2].equals("O"))
-				{
-					compPieces += 0.6;
-					//Check if the piece three moves down is the player's
-					if(j - 3 > -1 && board[i][j - 3].equals("O")){
-						compPieces += 0.8;
-					}
+		}
+		
+		// Check if the piece next to this move is blank
+		if (j + 1 < 8 && board[i][j + 1].equals("-")) {
+			// Check if the piece two moves down is the computer's
+			if (j + 2 < 8 && board[i][j + 2].equals(value)) {
+				compPieces += 0.2;
+				// Check if the piece three moves down is the computer's
+				if (j + 3 < 8 && board[i][j + 3].equals(value)) {
+					compPieces += 1.0;
 				}
 			}
-			//Check if the piece next to this move is blank
-			if(j + 1 < 8 && board[i][j + 1].equals("-"))
-			{
-				//Check if the piece two moves down is the play's
-				if(j + 2 < 8 && board[i][j + 2].equals("O"))
-				{
-					compPieces += 0.6;
-					//Check if the piece three moves down is the player's
-					if(j + 3 < 8 && board[i][j + 3].equals("O")){
-						compPieces += 0.8;
-					}
-				}
-				
-			}
-			//Check if the move next to this move is blank
-			if(j - 1 > -1 && board[i][j - 1].equals("-"))
-			{
-				//Check if the piece two moves down is the player's
-				if(j - 2 < 8 && board[i][j - 2].equals("O"))
-				{
-					compPieces += 0.6;
-					//Check if the piece three moves down is the player's
-					if(j - 3 < 8 && board[i][j - 3].equals("O")){
-						compPieces += 0.8;
-					}
+
+		}
+		
+		// Check if the move next to this move is blank
+		if (j - 1 > -1 && board[i][j - 1].equals("-")) {
+			// Check if the piece two moves down is the computer's
+			if (j - 2 > -1 && board[i][j - 2].equals(value)) {
+				compPieces += 0.2;
+				// Check if the piece three moves down is the computer's
+				if (j - 3 > -1 && board[i][j - 3].equals(value)) {
+					compPieces += 1.0;
 				}
 			}
-			//Check the pieces in the column row
-			//Check if the next piece over is a player piece
-			if(i + 1 < 8 && board[i + 1][j].equals("O"))
+		}
+		
+		// Check the pieces in the column row
+		// Check if the next piece over is a computer piece
+		if (i + 1 < 8 && board[i + 1][j].equals(value)) {
+			compPieces += 0.4;
+			if((i + 2 < 8 && board[i + 2][j].equals("-")) && (i - 1 > -1 && board[i-1][j].equals("-")))	
 			{
-				compPieces += 0.4;
-				//Check if the piece two moves down is the player's
-				if(i + 2 < 8 && board[i + 2][j].equals("O"))
-				{
-					compPieces += 0.6;
-					//Check if the piece three moves down is the player's
-					if(i + 3 < 8 && board[i + 3][j].equals("O")){
-						compPieces += 0.8;
-					}
+				compPieces += 0.6;
+			}
+			// Check if the piece two moves down is the computer's
+			else if (i + 2 < 8 && board[i + 2][j].equals(value)) {
+				compPieces += 0.6;
+				// Check if the piece three moves down is the computer's
+				if (i + 3 < 8 && board[i + 3][j].equals(value)) {
+					compPieces += 1.0;
 				}
 			}
-			//Check the pieces in the column row
-			//Check if the next piece over is a player piece
-			if(i - 1 > -1 && board[i - 1][j].equals("O"))
+		}
+		// Check the pieces in the column row
+		// Check if the next piece over is a computer piece
+		if (i - 1 > -1 && board[i - 1][j].equals(value)) {
+			compPieces += 0.4;
+			if((i - 2 > -1 && board[i - 2][j].equals("-")) && (i + 1 < 8 && board[i+1][j].equals("-")))	
 			{
-				compPieces += 0.4;
-				//Check if the piece two moves down is the player's
-				if(i - 2 > -1 && board[i - 2][j].equals("O"))
-				{
-					compPieces += 0.6;
-					//Check if the piece three moves down is the player's
-					if(i - 3 > -1 && board[i - 3][j].equals("O")){
-						compPieces += 0.8;
-					}
+				compPieces += 0.6;
+			}
+			// Check if the piece two moves down is the computer's
+			if (i - 2 > -1 && board[i - 2][j].equals(value)) {
+				compPieces += 0.6;
+				// Check if the piece three moves down is the computer's
+				if (i - 3 > -1 && board[i - 3][j].equals(value)) {
+					compPieces += 1.0;
 				}
 			}
-			//Check if the move next to this move is black
-			if(i + 1 < 8 && board[i + 1][j].equals("-"))
-			{
-				//Check if the piece two moves down is the player's
-				if(i + 2 < 8 && board[i + 2][j].equals("O"))
-				{
-					compPieces += 0.6;
-					//Check if the piece three moves down is the player's
-					if(i + 3 < 8 && board[i + 3][j].equals("O")){
-						compPieces += 0.8;
-					}
-				}
-				
-			}
-			//Check if the move next to this move is blank
-			if(i - 1 > -1 && board[i - 1][j].equals("-"))
-			{
-				//Check if the piece two moves down is the player's
-				if(i - 2 > -1 && board[i - 2][j].equals("O"))
-				{
-					compPieces += 0.6;
-					//Check if the piece three moves down is the player's
-					if(i - 3 > -1 && board[i - 3][j].equals("O")){
-						compPieces += 0.8;
-					}
-				}
-				
-			}
+		}
+		
+		// Check Killer moves
+		if (j + 1 < 8 && j + 2 < 8 && j + 3 < 8 && j - 1 > -1 && board[i][j + 1].equals(value)
+				&& board[i][j + 2].equals(value) && board[i][j + 3].equals("-") && board[i][j - 1].equals("-")) {
+			// Board config if -xxx-. Killer Move
+			compPieces += 5.0;
+			if((j + 4 < 8 && board[i][j + 4].equals("-")) || (j - 2 > -1 && board[i][j - 2].equals("-")))
+				compPieces += 1.0;
+		}
+		if (i + 1 < 8 && i + 2 < 8 && i + 3 < 8 && i - 1 > -1 && board[i + 1][j].equals(value)
+				&& board[i + 2][j].equals(value) && board[i + 3][j].equals("-") && board[i - 1][j].equals("-")) {
+			// Killer Move Row Wise
+			// Board Config
+			// -
+			// x
+			// x
+			// x
+			// -
+
+			compPieces += 5.0;
+			if((i + 4 < 8 && board[i + 4][j].equals("-")) || (i - 2 > -1 && board[i - 2][j].equals("-")))
+				compPieces += 1.0;
+		}
+		if (j - 1 > -1 && j - 2 > -1 && j - 3 > -1 && j + 1 < 8 && board[i][j - 1].equals(value)
+				&& board[i][j - 2].equals(value) && board[i][j - 3].equals("-") && board[i][j + 1].equals("-")) {
+			// Board config if -xxx-. Killer Move
+			compPieces += 5.0;
+			if((j - 4 > -1 && board[i][j - 4].equals("-")) || (j + 2 < 8 && board[i][j + 2].equals("-")))
+				compPieces += 1.0;
+		}
+		if (i - 1 > -1 && i - 2 > -1 && i - 3 > -1 && i + 1 < 8 && board[i - 1][j].equals(value)
+				&& board[i - 2][j].equals(value) && board[i - 3][j].equals("-") && board[i + 1][j].equals("-")) {
+			// Killer Move Row Wise
+			// Board Config
+			// -
+			// x
+			// x
+			// x
+			// -
+			compPieces += 5.0;
+			if((i - 4 > -1 && board[i - 4][j].equals("-")) || (i + 2 < 8 && board[i + 2][j].equals("-")))
+				compPieces += 1.0;
+		}
+		
+		// return compPieces;
+		// The computer's piece on the board
+		if (value.equals("X")) {
+			return compPieces;
+		} else if (value.equals("O")) {
 			return -compPieces;
 		}
-		return evalPiece;
+
+		return 0.0;
 	}
 
 }

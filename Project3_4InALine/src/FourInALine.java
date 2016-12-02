@@ -149,7 +149,7 @@ public class FourInALine {
 		long timeEnding = System.currentTimeMillis() + seconds;
 		//Run alpha beta algorithm to get the best move
 		Board state = abPruning.alphaBetaAlgorithm(board, true, 
-				-Double.MAX_VALUE, Double.MAX_VALUE, 5, timeEnding);
+				-Double.MAX_VALUE, Double.MAX_VALUE, 6, timeEnding);
 		String [][]newBoard = board.copy();
 		//Save the best board's move
 		int rowMove = state.getRowMove();
